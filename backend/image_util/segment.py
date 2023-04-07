@@ -16,9 +16,21 @@ masks = mask_generator.generate(image)
 
 pprint(masks);
 
-masks.sort(key=lambda mask: mask["area"] * mask["predicted_iou"], reverse=True)
+# TASK: we would like to sort the masks based not on the area,
+# but by weighing each pixel based on how far it is from the center of the image.
+# pixels close to the center should be worth a lot more.
+
+def rank_mask(mask: dict):
+    return mask["area"] * mask["predicted_iou"] ** 2
 
 mask = masks[0]["segmentation"] * 255
+
+for mask in masks[0:5]:
+    pass
+
+def rank_mask(mask: dict):
+    return mask["area"] * mask["predicted_iou"] ** 2
+masks.sort(key=rank_mask, reverse=True)
 
 masked_image = cv2.cvtColor(image, cv2.COLOR_BGR2BGRA)
 masked_image[:, :, 3] = mask
