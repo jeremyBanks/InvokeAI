@@ -7,6 +7,8 @@ from argparse import Namespace
 from packaging import version
 from pathlib import Path
 from typing import Union
+import matplotlib.pyplot as plt
+from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 
 import click
 
@@ -96,6 +98,8 @@ def main():
     # Loading Face Restoration and ESRGAN Modules
     gfpgan, codeformer, esrgan = load_face_restoration(opt)
 
+    automatic_mask = load_automatic_mask(opt)
+
     # normalize the config directory relative to root
     if not os.path.isabs(opt.conf):
         opt.conf = os.path.normpath(os.path.join(Globals.root, opt.conf))
@@ -182,7 +186,7 @@ def main():
 
     # web server loops forever
     if opt.web or opt.gui:
-        invoke_ai_web_server_loop(gen, gfpgan, codeformer, esrgan)
+        invoke_ai_web_server_loop(gen, gfpgan, codeformer, esrgan, automatic_mask)
         sys.exit(0)
 
     if not infile:
@@ -935,6 +939,8 @@ def do_postprocess(gen, opt, callback):
         tool = "outpaint"
     elif opt.outcrop:
         tool = "outcrop"
+    elif opt.automatic_mask:
+        tool = "automatic_mask"
     opt.save_original = True  # do not overwrite old image!
     opt.last_operation = f"postprocess:{tool}"
     try:
@@ -1074,7 +1080,7 @@ def get_next_command(infile=None, model_name="no model") -> str:  # command stri
     return command
 
 
-def invoke_ai_web_server_loop(gen: Generate, gfpgan, codeformer, esrgan):
+def invoke_ai_web_server_loop(gen: Generate, gfpgan, codeformer, esrgan, automatic_mask):
     print("\n* --web was specified, starting web server...")
     from invokeai.backend import InvokeAIWebServer
 
@@ -1082,7 +1088,7 @@ def invoke_ai_web_server_loop(gen: Generate, gfpgan, codeformer, esrgan):
     os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
     invoke_ai_web_server = InvokeAIWebServer(
-        generate=gen, gfpgan=gfpgan, codeformer=codeformer, esrgan=esrgan
+        generate=gen, gfpgan=gfpgan, codeformer=codeformer, esrgan=esrgan, automatic_mask=automatic_mask
     )
 
     try:
@@ -1150,6 +1156,13 @@ def load_face_restoration(opt):
         print(">> You may need to install the ESRGAN and/or GFPGAN modules")
     return gfpgan, codeformer, esrgan
 
+
+def load_automatic_mask(opt):
+    sam = sam_model_registry["vit_b"](checkpoint=r"D:\sam_vit_b_01ec64.pth")
+    sam.to("cuda")
+    generator = SamAutomaticMaskGenerator(sam)
+    print(">> Segment Anything Model Initialized")
+    return generator
 
 def make_step_callback(gen, opt, prefix):
     destination = os.path.join(opt.outdir, "intermediates", prefix)

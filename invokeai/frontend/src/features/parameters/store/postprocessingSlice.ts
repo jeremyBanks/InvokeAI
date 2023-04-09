@@ -19,6 +19,7 @@ export interface PostprocessingState {
   upscalingLevel: UpscalingLevel;
   upscalingDenoising: number;
   upscalingStrength: number;
+  automaticMasking: boolean;
 }
 
 const initialPostprocessingState: PostprocessingState = {
@@ -33,6 +34,7 @@ const initialPostprocessingState: PostprocessingState = {
   upscalingLevel: 4,
   upscalingDenoising: 0.75,
   upscalingStrength: 0.75,
+  automaticMasking: false,
 };
 
 const initialState: PostprocessingState = initialPostprocessingState;
@@ -91,6 +93,9 @@ export const postprocessingSlice = createSlice({
     setShouldLoopback: (state, action: PayloadAction<boolean>) => {
       state.shouldLoopback = action.payload;
     },
+    setAutomaticMasking: (state, action: PayloadAction<boolean>) => {
+      state.automaticMasking = action.payload;
+    },
   },
 });
 
@@ -108,6 +113,7 @@ export const {
   setUpscalingLevel,
   setUpscalingDenoising,
   setUpscalingStrength,
+  setAutomaticMasking,
 } = postprocessingSlice.actions;
 
 export default postprocessingSlice.reducer;

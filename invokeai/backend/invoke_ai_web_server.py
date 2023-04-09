@@ -59,7 +59,7 @@ if not os.path.isabs(opt.conf):
 
 
 class InvokeAIWebServer:
-    def __init__(self, generate: Generate, gfpgan, codeformer, esrgan) -> None:
+    def __init__(self, generate: Generate, gfpgan, codeformer, esrgan, automatic_mask) -> None:
         self.host = args.host
         self.port = args.port
 
@@ -67,6 +67,7 @@ class InvokeAIWebServer:
         self.gfpgan = gfpgan
         self.codeformer = codeformer
         self.esrgan = esrgan
+        self.automatic_mask = automatic_mask
 
         self.canceled = Event()
         self.ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
@@ -836,6 +837,11 @@ class InvokeAIWebServer:
                         strength=postprocessing_parameters["facetool_strength"],
                         seed=seed,
                     )
+                elif postprocessing_parameters["type"] == "automatic_mask":
+                    image = self.automatic_mask.process(
+                        image=image,
+                        strength=postprocessing_parameters["automatic_mask"],
+                    )
                 elif postprocessing_parameters["type"] == "codeformer":
                     image = self.codeformer.process(
                         image=image,
@@ -1436,12 +1442,12 @@ class InvokeAIWebServer:
                         "strength": float(parameters["upscale"][2]),
                     }
                 )
-            
-            if "automatic-mask" in parameters:
+
+            if "automatic_mask" in parameters:
                 postprocessing.append(
                     {
-                        "type": "automatic-mask",
-                        "deets": parameters["automatic-mask"],
+                        "type": "automatic_mask",
+                        "_deets": parameters["automatic_mask"],
                     }
                 )
 

@@ -62,6 +62,7 @@ COMMANDS = (
     '--text_mask','-tm',
     '--h_symmetry_time_pct',
     '--v_symmetry_time_pct',
+    '--automatic_mask',
     '!fix','!fetch','!replay','!history','!search','!clear',
     '!models','!switch','!import_model','!optimize_model','!convert_model','!edit_model','!del_model',
     '!mask','!triggers',
