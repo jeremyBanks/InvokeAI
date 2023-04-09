@@ -81,6 +81,7 @@ dependencies = [
   "torchvision>=0.14.1",
   "transformers~=4.26",
   "windows-curses; sys_platform=='win32'",
+  "segment-anything",
 ]
 description = "An implementation of Stable Diffusion which provides various new features and options to aid the image generation process"
 dynamic = ["version"]

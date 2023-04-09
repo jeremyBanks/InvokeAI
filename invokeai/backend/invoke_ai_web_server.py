@@ -1436,6 +1436,14 @@ class InvokeAIWebServer:
                         "strength": float(parameters["upscale"][2]),
                     }
                 )
+            
+            if "automatic-mask" in parameters:
+                postprocessing.append(
+                    {
+                        "type": "automatic-mask",
+                        "deets": parameters["automatic-mask"],
+                    }
+                )
 
             rfc_dict["postprocessing"] = (
                 postprocessing if len(postprocessing) > 0 else None
