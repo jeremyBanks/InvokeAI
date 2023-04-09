@@ -2,7 +2,7 @@
 import sys
 import os
 
-sys.path.append("D:\voke")
+sys.path.append("D:\\voke")
 
 
 import ldm.invoke.CLI
