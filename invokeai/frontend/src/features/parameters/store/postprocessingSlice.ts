@@ -19,11 +19,12 @@ export interface PostprocessingState {
   upscalingLevel: UpscalingLevel;
   upscalingDenoising: number;
   upscalingStrength: number;
-  maskType: MaskType;
-  maskTextPrompt: string;
+  outputAlphaMaskType: OutputAlphaMaskType;
+  outputAlphaMaskTextPrompt: string;
 }
 
-export type MaskType = null | 'text2mask' | 'segment-anything';
+export type OutputAlphaMaskType = 'text2mask' | 'segment-anything';
+export type SegmentAnythingMode = 'center' | 'best';
 
 const initialPostprocessingState: PostprocessingState = {
   codeformerFidelity: 0.75,
@@ -37,8 +38,8 @@ const initialPostprocessingState: PostprocessingState = {
   upscalingLevel: 4,
   upscalingDenoising: 0.75,
   upscalingStrength: 0.75,
-  maskType: null,
-  maskTextPrompt: '',
+  outputAlphaMaskType: 'text2mask',
+  outputAlphaMaskTextPrompt: 'foreground',
 };
 
 const initialState: PostprocessingState = initialPostprocessingState;
@@ -97,11 +98,14 @@ export const postprocessingSlice = createSlice({
     setShouldLoopback: (state, action: PayloadAction<boolean>) => {
       state.shouldLoopback = action.payload;
     },
-    setMask: (state, action: PayloadAction<MaskType>) => {
-      state.maskType = action.payload;
+    setOutputAlphaMaskType: (
+      state,
+      action: PayloadAction<OutputAlphaMaskType>
+    ) => {
+      state.outputAlphaMaskType = action.payload;
     },
     setMaskTextPrompt: (state, action: PayloadAction<string>) => {
-      state.maskTextPrompt = action.payload;
+      state.outputAlphaMaskTextPrompt = action.payload;
     },
   },
 });
@@ -120,7 +124,7 @@ export const {
   setUpscalingLevel,
   setUpscalingDenoising,
   setUpscalingStrength,
-  setMask,
+  setOutputAlphaMaskType,
 } = postprocessingSlice.actions;
 
 export default postprocessingSlice.reducer;

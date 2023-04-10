@@ -1,11 +1,11 @@
 import { RootState } from 'app/store';
 import { useAppDispatch, useAppSelector } from 'app/storeHooks';
 import IAISwitch from 'common/components/IAISwitch';
-import { setShouldUseMasking } from 'features/parameters/store/generationSlice';
+import { setOutputAlphaMaskEnabled } from 'features/parameters/store/generationSlice';
 
 export default function MaskingToggle() {
   const shouldUseMasking = useAppSelector(
-    (state: RootState) => state.generation.shouldUseMasking
+    (state: RootState) => state.generation.outputAlphaMaskEnabled
   );
 
   const dispatch = useAppDispatch();
@@ -13,7 +13,7 @@ export default function MaskingToggle() {
   return (
     <IAISwitch
       isChecked={shouldUseMasking}
-      onChange={(e) => dispatch(setShouldUseMasking(e.target.checked))}
+      onChange={(e) => dispatch(setOutputAlphaMaskEnabled(e.target.checked))}
     />
   );
 }

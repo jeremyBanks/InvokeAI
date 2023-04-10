@@ -5,6 +5,10 @@ import { getPromptAndNegative } from 'common/util/getPromptAndNegative';
 import promptToString from 'common/util/promptToString';
 import { seedWeightsToString } from 'common/util/seedWeightPairs';
 import { clamp } from 'lodash';
+import {
+  OutputAlphaMaskType,
+  SegmentAnythingMode,
+} from './postprocessingSlice';
 
 export interface GenerationState {
   cfgScale: number;
@@ -38,7 +42,10 @@ export interface GenerationState {
   variationAmount: number;
   width: number;
   shouldUseSymmetry: boolean;
-  shouldUseMasking: boolean;
+  outputAlphaMaskEnabled: boolean;
+  outputAlphaMaskType: OutputAlphaMaskType;
+  outputAlphaMaskSegmentAnythingMode: SegmentAnythingMode;
+  outputAlphaMaskTextPrompt: string;
   horizontalSymmetrySteps: number;
   verticalSymmetrySteps: number;
 }
@@ -74,7 +81,10 @@ const initialGenerationState: GenerationState = {
   variationAmount: 0.1,
   width: 512,
   shouldUseSymmetry: false,
-  shouldUseMasking: false,
+  outputAlphaMaskEnabled: false,
+  outputAlphaMaskType: 'text2mask',
+  outputAlphaMaskTextPrompt: 'foreground',
+  outputAlphaMaskSegmentAnythingMode: 'center',
   horizontalSymmetrySteps: 0,
   verticalSymmetrySteps: 0,
 };
@@ -483,8 +493,14 @@ export const generationSlice = createSlice({
     setShouldUseSymmetry: (state, action: PayloadAction<boolean>) => {
       state.shouldUseSymmetry = action.payload;
     },
-    setShouldUseMasking: (state, action: PayloadAction<boolean>) => {
-      state.shouldUseMasking = action.payload;
+    setOutputAlphaMaskEnabled: (state, action: PayloadAction<boolean>) => {
+      state.outputAlphaMaskEnabled = action.payload;
+    },
+    setOutputAlphaMaskType: (
+      state,
+      action: PayloadAction<OutputAlphaMaskType>
+    ) => {
+      state.outputAlphaMaskType = action.payload;
     },
     setHorizontalSymmetrySteps: (state, action: PayloadAction<number>) => {
       state.horizontalSymmetrySteps = action.payload;
@@ -536,7 +552,8 @@ export const {
   setVariationAmount,
   setWidth,
   setShouldUseSymmetry,
-  setShouldUseMasking,
+  setOutputAlphaMaskEnabled,
+  setOutputAlphaMaskType,
   setHorizontalSymmetrySteps,
   setVerticalSymmetrySteps,
 } = generationSlice.actions;

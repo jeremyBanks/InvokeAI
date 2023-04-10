@@ -1,5 +1,6 @@
 // TODO: use Enums?
 
+import { OutputAlphaMaskType } from 'features/parameters/store/postprocessingSlice';
 import { InProgressImageType } from 'features/system/store/systemSlice';
 
 // Valid samplers
@@ -55,6 +56,11 @@ export const NUMPY_RAND_MIN = 0;
 export const NUMPY_RAND_MAX = 4294967295;
 
 export const FACETOOL_TYPES = ['gfpgan', 'codeformer'] as const;
+
+export const OUTPUT_ALPHA_MASK_TYPES = [
+  'text2mask',
+  'segment-anything',
+] as const;
 
 export const IN_PROGRESS_IMAGE_TYPES: Array<{
   key: string;

@@ -19,7 +19,7 @@ export enum Feature {
   BOUNDING_BOX,
   SEAM_CORRECTION,
   INFILL_AND_SCALING,
-  MASKING,
+  OUTPUT_ALPHA,
 }
 /** For each tooltip in the UI, the below feature definitions & props will pull relevant information into the tooltip.
  *
@@ -39,8 +39,8 @@ const useFeatures = (): Record<Feature, FeatureHelpInfo> => {
         href: 'link/to/docs/feature3.html',
         guideImage: 'asset/path.gif',
       },
-      [Feature.MASKING]: {
-        text: t('tooltip.feature.masking'),
+      [Feature.OUTPUT_ALPHA]: {
+        text: t('tooltip.feature.outputAlpha'),
         href: 'link/to/docs/feature3.html',
         guideImage: 'asset/path.gif',
       },
