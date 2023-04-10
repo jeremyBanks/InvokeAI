@@ -1,3 +1,4 @@
+import cv2
 import base64
 import glob
 import io
@@ -9,6 +10,7 @@ import shutil
 import traceback
 from threading import Event
 from uuid import uuid4
+import numpy as np
 
 import eventlet
 from pathlib import Path
@@ -43,6 +45,8 @@ from ldm.invoke.globals import (
 from ldm.invoke.pngwriter import PngWriter, retrieve_metadata
 from compel.prompt_parser import Blend
 from ldm.invoke.merge_diffusers import merge_diffusion_models
+
+from segment_anything import sam_model_registry, SamAutomaticMaskGenerator, SamPredictor
 
 # Loading Arguments
 opt = Args()
@@ -800,6 +804,7 @@ class InvokeAIWebServer:
                     generation_parameters,
                     esrgan_parameters,
                     facetool_parameters,
+                    automatic_mask_parameters,
                 )
             except Exception as e:
                 self.handle_exceptions(e)
@@ -964,7 +969,11 @@ class InvokeAIWebServer:
         }
 
     def generate_images(
-        self, generation_parameters, esrgan_parameters, facetool_parameters
+        self,
+        generation_parameters,
+        esrgan_parameters,
+        facetool_parameters,
+        automatic_mask_parameters,
     ):
         try:
             self.canceled.clear()
@@ -1273,6 +1282,20 @@ class InvokeAIWebServer:
                         "strength"
                     ]
                     all_parameters["facetool_type"] = facetool_parameters["type"]
+
+                if automatic_mask_parameters:
+                    progress.set_current_status("common.statusGeneratingAlphaMask")
+                    progress.set_current_status_has_steps(False)
+                    self.socketio.emit("progressUpdate", progress.to_formatted_dict())
+                    eventlet.sleep(0)
+
+                    anywhere = SamAutomaticMaskGenerator(self.generate.segment_anything)
+                    masks = anywhere.generate(image)
+                    mask = masks[0]["segmentation"] * 255
+
+                    image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2BGRA)
+                    image[:, :, 3] = mask
+                    image = Image.fromarray(image)
 
                 progress.set_current_status("common.statusSavingImage")
                 self.socketio.emit("progressUpdate", progress.to_formatted_dict())

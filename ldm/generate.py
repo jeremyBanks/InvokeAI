@@ -153,6 +153,7 @@ class Generate:
         gfpgan=None,
         codeformer=None,
         esrgan=None,
+        segment_anything=None,
         free_gpu_mem: bool = False,
         safety_checker: bool = False,
         max_loaded_models: int = 2,
@@ -188,6 +189,7 @@ class Generate:
         self.gfpgan = gfpgan
         self.codeformer = codeformer
         self.esrgan = esrgan
+        self.segment_anything = segment_anything
         self.free_gpu_mem = free_gpu_mem
         self.max_loaded_models = (max_loaded_models,)
         self.size_matters = True  # used to warn once about large image sizes and VRAM

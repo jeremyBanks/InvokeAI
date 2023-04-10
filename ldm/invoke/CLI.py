@@ -22,8 +22,7 @@ import pyparsing  # type: ignore
 import ldm.invoke
 
 from ..generate import Generate
-from .args import (Args, dream_cmd_from_png, metadata_dumps,
-                             metadata_from_png)
+from .args import Args, dream_cmd_from_png, metadata_dumps, metadata_from_png
 from .generator.diffusers_pipeline import PipelineIntermediateState
 from .globals import Globals, global_config_dir
 from .image_util import make_grid
@@ -35,6 +34,7 @@ from ..util import url_attachment_name
 
 # global used in multiple functions (fix)
 infile = None
+
 
 def main():
     """Initialize command-line parsers and the diffusion model"""
@@ -98,7 +98,7 @@ def main():
     # Loading Face Restoration and ESRGAN Modules
     gfpgan, codeformer, esrgan = load_face_restoration(opt)
 
-    automatic_mask = load_automatic_mask(opt)
+    segment_anything = load_segment_anything(opt)
 
     # normalize the config directory relative to root
     if not os.path.isabs(opt.conf):
@@ -147,6 +147,7 @@ def main():
             gfpgan=gfpgan,
             codeformer=codeformer,
             esrgan=esrgan,
+            segment_anything=segment_anything,
             free_gpu_mem=opt.free_gpu_mem,
             safety_checker=opt.safety_checker,
             max_loaded_models=opt.max_loaded_models,
@@ -170,23 +171,21 @@ def main():
 
     # completer is the readline object
     completer = get_completer(opt, models=gen.model_manager.list_models())
-            
+
     # try to autoconvert new models
     if path := opt.autoimport:
         gen.model_manager.heuristic_import(
             str(path),
             commit_to_conf=opt.conf,
-            config_file_callback=lambda x: _pick_configuration_file(completer,x),
+            config_file_callback=lambda x: _pick_configuration_file(completer, x),
         )
 
     if path := opt.autoconvert:
-        gen.model_manager.heuristic_import(
-            str(path), commit_to_conf=opt.conf
-        )
+        gen.model_manager.heuristic_import(str(path), commit_to_conf=opt.conf)
 
     # web server loops forever
     if opt.web or opt.gui:
-        invoke_ai_web_server_loop(gen, gfpgan, codeformer, esrgan, automatic_mask)
+        invoke_ai_web_server_loop(gen, gfpgan, codeformer, esrgan, segment_anything)
         sys.exit(0)
 
     if not infile:
@@ -514,7 +513,7 @@ def main_loop(gen, opt, completer):
 def do_command(command: str, gen, opt: Args, completer) -> tuple:
     global infile
     operation = "generate"  # default operation, alternative is 'postprocess'
-    command = command.replace('\\','/') # windows
+    command = command.replace("\\", "/")  # windows
 
     if command.startswith(
         "!dream"
@@ -557,10 +556,10 @@ def do_command(command: str, gen, opt: Args, completer) -> tuple:
                 import_model(path[1], gen, opt, completer)
                 completer.add_history(command)
             except KeyboardInterrupt:
-                print('\n')
+                print("\n")
         operation = None
 
-    elif command.startswith(("!convert","!optimize")):
+    elif command.startswith(("!convert", "!optimize")):
         path = shlex.split(command)
         if len(path) < 2:
             print("** please provide the path to a .ckpt or .safetensors model")
@@ -569,9 +568,9 @@ def do_command(command: str, gen, opt: Args, completer) -> tuple:
                 convert_model(path[1], gen, opt, completer)
                 completer.add_history(command)
             except KeyboardInterrupt:
-                print('\n')
+                print("\n")
         operation = None
- 
+
     elif command.startswith("!edit"):
         path = shlex.split(command)
         if len(path) < 2:
@@ -659,12 +658,12 @@ def import_model(model_path: str, gen, opt, completer):
     ):
         pass
     else:
-        if model_path.startswith(('http:','https:')):
+        if model_path.startswith(("http:", "https:")):
             try:
                 default_name = url_attachment_name(model_path)
                 default_name = Path(default_name).stem
             except Exception as e:
-                print(f'** URL: {str(e)}')
+                print(f"** URL: {str(e)}")
             model_name, model_desc = _get_model_name_and_desc(
                 gen.model_manager,
                 completer,
@@ -674,7 +673,7 @@ def import_model(model_path: str, gen, opt, completer):
         model_path,
         model_name=model_name,
         description=model_desc,
-        config_file_callback=lambda x: _pick_configuration_file(completer,x),
+        config_file_callback=lambda x: _pick_configuration_file(completer, x),
     )
     if not imported_name:
         print("** Aborting import.")
@@ -691,9 +690,10 @@ def import_model(model_path: str, gen, opt, completer):
     completer.update_models(gen.model_manager.list_models())
     print(f">> {imported_name} successfully installed")
 
-def _pick_configuration_file(completer, checkpoint_path: Path)->Path:
+
+def _pick_configuration_file(completer, checkpoint_path: Path) -> Path:
     print(
-f"""
+        f"""
 Please select the type of the model at checkpoint {checkpoint_path}:
 [1] A Stable Diffusion v1.x ckpt/safetensors model
 [2] A Stable Diffusion v1.x inpainting ckpt/safetensors model
@@ -701,33 +701,36 @@ Please select the type of the model at checkpoint {checkpoint_path}:
 [4] A Stable Diffusion v2.x v-predictive model (768 pixels; look for a 'parameterization: "v"' line in its yaml file)
 [5] Other (you will be prompted to enter the config file path)
 [Q] I have no idea! Skip the import.
-""")
+"""
+    )
     choices = [
-        global_config_dir() / 'stable-diffusion' / x
+        global_config_dir() / "stable-diffusion" / x
         for x in [
-                'v1-inference.yaml',
-                'v1-inpainting-inference.yaml',
-                'v2-inference.yaml',
-                'v2-inference-v.yaml',
+            "v1-inference.yaml",
+            "v1-inpainting-inference.yaml",
+            "v2-inference.yaml",
+            "v2-inference-v.yaml",
         ]
     ]
 
     ok = False
     while not ok:
         try:
-            choice = input('select 0-5, Q > ').strip()
-            if choice.startswith(('q','Q')):
+            choice = input("select 0-5, Q > ").strip()
+            if choice.startswith(("q", "Q")):
                 return
-            if choice == '5':
-                completer.complete_extensions(('.yaml'))
-                choice = Path(input('Select config file for this model> ').strip()).absolute()
+            if choice == "5":
+                completer.complete_extensions((".yaml"))
+                choice = Path(
+                    input("Select config file for this model> ").strip()
+                ).absolute()
                 completer.complete_extensions(None)
                 ok = choice.exists()
             else:
-                choice = choices[int(choice)-1]
+                choice = choices[int(choice) - 1]
                 ok = True
         except (ValueError, IndexError):
-            print(f'{choice} is not a valid choice')
+            print(f"{choice} is not a valid choice")
         except EOFError:
             return
     return choice
@@ -765,6 +768,7 @@ def _get_model_name_and_desc(
     )
     return model_name, model_description
 
+
 def convert_model(model_name_or_path: Union[Path, str], gen, opt, completer):
     model_name_or_path = model_name_or_path.replace("\\", "/")  # windows
     manager = gen.model_manager
@@ -800,7 +804,9 @@ def convert_model(model_name_or_path: Union[Path, str], gen, opt, completer):
             return
 
     manager.commit(opt.conf)
-    if ckpt_path and click.confirm(f"Delete the original .ckpt file at {ckpt_path}?", default=False):
+    if ckpt_path and click.confirm(
+        f"Delete the original .ckpt file at {ckpt_path}?", default=False
+    ):
         ckpt_path.unlink(missing_ok=True)
         print(f"{ckpt_path} deleted")
 
@@ -837,7 +843,7 @@ def edit_model(model_name: str, gen, opt, completer):
     print(f"\n>> Editing model {model_name} from configuration file {opt.conf}")
     new_name = _get_model_name(manager.list_models(), completer, model_name)
 
-    completer.complete_extensions(('.yaml','.ckpt','.safetensors','.pt'))
+    completer.complete_extensions((".yaml", ".ckpt", ".safetensors", ".pt"))
     for attribute in info.keys():
         if type(info[attribute]) != str:
             continue
@@ -1000,14 +1006,14 @@ def add_postprocessing_to_metadata(opt, original_file, new_file, tool, command):
 
 
 def prepare_image_metadata(
-        opt,
-        prefix,
-        seed,
-        operation="generate",
-        prior_variations=[],
-        postprocessed=False,
-        first_seed=None,
-        model_id='unknown',
+    opt,
+    prefix,
+    seed,
+    operation="generate",
+    prior_variations=[],
+    postprocessed=False,
+    first_seed=None,
+    model_id="unknown",
 ):
     if postprocessed and opt.save_original:
         filename = choose_postprocess_name(opt, prefix, seed)
@@ -1033,16 +1039,23 @@ def prepare_image_metadata(
         first_seed = first_seed or seed
         this_variation = [[seed, opt.variation_amount]]
         opt.with_variations = prior_variations + this_variation
-        formatted_dream_prompt = opt.dream_prompt_str(seed=first_seed,model_id=model_id)
+        formatted_dream_prompt = opt.dream_prompt_str(
+            seed=first_seed, model_id=model_id
+        )
     elif len(prior_variations) > 0:
-        formatted_dream_prompt = opt.dream_prompt_str(seed=first_seed,model_id=model_id)
+        formatted_dream_prompt = opt.dream_prompt_str(
+            seed=first_seed, model_id=model_id
+        )
     elif operation == "postprocess":
         formatted_dream_prompt = "!fix " + opt.dream_prompt_str(
-            seed=seed, prompt=opt.input_file_path, model_id=model_id,
+            seed=seed,
+            prompt=opt.input_file_path,
+            model_id=model_id,
         )
     else:
-        formatted_dream_prompt = opt.dream_prompt_str(seed=seed,model_id=model_id)
+        formatted_dream_prompt = opt.dream_prompt_str(seed=seed, model_id=model_id)
     return filename, formatted_dream_prompt
+
 
 def choose_postprocess_name(opt, prefix, seed) -> str:
     match = re.search("postprocess:(\w+)", opt.last_operation)
@@ -1080,7 +1093,9 @@ def get_next_command(infile=None, model_name="no model") -> str:  # command stri
     return command
 
 
-def invoke_ai_web_server_loop(gen: Generate, gfpgan, codeformer, esrgan, automatic_mask):
+def invoke_ai_web_server_loop(
+    gen: Generate, gfpgan, codeformer, esrgan, automatic_mask
+):
     print("\n* --web was specified, starting web server...")
     from invokeai.backend import InvokeAIWebServer
 
@@ -1088,7 +1103,11 @@ def invoke_ai_web_server_loop(gen: Generate, gfpgan, codeformer, esrgan, automat
     os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
     invoke_ai_web_server = InvokeAIWebServer(
-        generate=gen, gfpgan=gfpgan, codeformer=codeformer, esrgan=esrgan, automatic_mask=automatic_mask
+        generate=gen,
+        gfpgan=gfpgan,
+        codeformer=codeformer,
+        esrgan=esrgan,
+        automatic_mask=automatic_mask,
     )
 
     try:
@@ -1157,12 +1176,12 @@ def load_face_restoration(opt):
     return gfpgan, codeformer, esrgan
 
 
-def load_automatic_mask(opt):
+def load_segment_anything(opt):
     sam = sam_model_registry["vit_b"](checkpoint=r"D:\sam_vit_b_01ec64.pth")
     sam.to("cuda")
-    generator = SamAutomaticMaskGenerator(sam)
     print(">> Segment Anything Model Initialized")
-    return generator
+    return sam
+
 
 def make_step_callback(gen, opt, prefix):
     destination = os.path.join(opt.outdir, "intermediates", prefix)
@@ -1175,7 +1194,7 @@ def make_step_callback(gen, opt, prefix):
         if step % opt.save_intermediates == 0 or step == opt.steps - 1:
             filename = os.path.join(destination, f"{step:04}.png")
             image = gen.sample_to_lowres_estimated_image(latents)
-            image = image.resize((image.size[0]*8,image.size[1]*8))
+            image = image.resize((image.size[0] * 8, image.size[1] * 8))
             image.save(filename, "PNG")
 
     return callback
@@ -1259,8 +1278,8 @@ def report_model_error(opt: Namespace, e: Exception):
         )
     else:
         if not click.confirm(
-                'Do you want to run invokeai-configure script to select and/or reinstall models?',
-                default=False
+            "Do you want to run invokeai-configure script to select and/or reinstall models?",
+            default=False,
         ):
             return
 
@@ -1302,33 +1321,35 @@ def check_internet() -> bool:
         return False
 
 
-def retrieve_last_used_model()->str:
+def retrieve_last_used_model() -> str:
     """
     Return name of the last model used.
     """
-    model_file_path = Path(Globals.root,'.last_model')
+    model_file_path = Path(Globals.root, ".last_model")
     if not model_file_path.exists():
         return None
-    with open(model_file_path,'r') as f:
+    with open(model_file_path, "r") as f:
         return f.readline()
+
 
 # This routine performs any patch-ups needed after installation
 def run_patches():
     install_missing_config_files()
-    version_file = Path(Globals.root,'.version')
+    version_file = Path(Globals.root, ".version")
     if version_file.exists():
-        with open(version_file,'r') as f:
-            root_version = version.parse(f.readline() or 'v2.3.2')
+        with open(version_file, "r") as f:
+            root_version = version.parse(f.readline() or "v2.3.2")
     else:
-        root_version = version.parse('v2.3.2')
+        root_version = version.parse("v2.3.2")
     app_version = version.parse(ldm.invoke.__version__)
     if root_version < app_version:
         try:
             do_version_update(root_version, ldm.invoke.__version__)
-            with open(version_file,'w') as f:
+            with open(version_file, "w") as f:
                 f.write(ldm.invoke.__version__)
         except:
             print("** Update failed. Will try again on next launch")
+
 
 def install_missing_config_files():
     """
@@ -1337,38 +1358,42 @@ def install_missing_config_files():
     """
     import invokeai.configs as conf
     from shutil import copyfile
-    
-    root_configs = Path(global_config_dir(), 'stable-diffusion')
-    repo_configs = Path(conf.__path__[0], 'stable-diffusion')
+
+    root_configs = Path(global_config_dir(), "stable-diffusion")
+    repo_configs = Path(conf.__path__[0], "stable-diffusion")
     for src in repo_configs.iterdir():
         dest = root_configs / src.name
         if not dest.exists():
-            copyfile(src,dest)
-    
-def do_version_update(root_version: version.Version, app_version: Union[str, version.Version]):
+            copyfile(src, dest)
+
+
+def do_version_update(
+    root_version: version.Version, app_version: Union[str, version.Version]
+):
     """
     Make any updates to the launcher .sh and .bat scripts that may be needed
-    from release to release. This is not an elegant solution. Instead, the 
+    from release to release. This is not an elegant solution. Instead, the
     launcher should be moved into the source tree and installed using pip.
     """
-    if root_version < version.Version('v2.3.4'):
-        dest = Path(Globals.root,'loras')
+    if root_version < version.Version("v2.3.4"):
+        dest = Path(Globals.root, "loras")
         dest.mkdir(exist_ok=True)
-    if root_version < version.Version('v2.3.3'):
+    if root_version < version.Version("v2.3.3"):
         if sys.platform == "linux":
-            print('>> Downloading new version of launcher script and its config file')
+            print(">> Downloading new version of launcher script and its config file")
             from ldm.util import download_with_progress_bar
-            url_base = f'https://raw.githubusercontent.com/invoke-ai/InvokeAI/v{str(app_version)}/installer/templates/'
 
-            dest = Path(Globals.root,'invoke.sh.in')
-            assert download_with_progress_bar(url_base+'invoke.sh.in',dest)
-            dest.replace(Path(Globals.root,'invoke.sh'))
-            os.chmod(Path(Globals.root,'invoke.sh'), 0o0755)
+            url_base = f"https://raw.githubusercontent.com/invoke-ai/InvokeAI/v{str(app_version)}/installer/templates/"
 
-            dest = Path(Globals.root,'dialogrc')
-            assert download_with_progress_bar(url_base+'dialogrc',dest)
-            dest.replace(Path(Globals.root,'.dialogrc'))
+            dest = Path(Globals.root, "invoke.sh.in")
+            assert download_with_progress_bar(url_base + "invoke.sh.in", dest)
+            dest.replace(Path(Globals.root, "invoke.sh"))
+            os.chmod(Path(Globals.root, "invoke.sh"), 0o0755)
 
-if __name__ == '__main__':
+            dest = Path(Globals.root, "dialogrc")
+            assert download_with_progress_bar(url_base + "dialogrc", dest)
+            dest.replace(Path(Globals.root, ".dialogrc"))
+
+
+if __name__ == "__main__":
     main()
-    
