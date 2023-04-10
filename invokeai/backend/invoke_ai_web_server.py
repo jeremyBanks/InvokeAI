@@ -59,7 +59,9 @@ if not os.path.isabs(opt.conf):
 
 
 class InvokeAIWebServer:
-    def __init__(self, generate: Generate, gfpgan, codeformer, esrgan, automatic_mask) -> None:
+    def __init__(
+        self, generate: Generate, gfpgan, codeformer, esrgan, automatic_mask
+    ) -> None:
         self.host = args.host
         self.port = args.port
 
@@ -546,11 +548,20 @@ class InvokeAIWebServer:
         @socketio.on("getTextualInversionTriggers")
         def get_ti_triggers():
             try:
-                local_triggers = self.generate.model.textual_inversion_manager.get_all_trigger_strings()
-                locals = [{'name': x} for x in sorted(local_triggers, key=str.casefold)]
+                local_triggers = (
+                    self.generate.model.textual_inversion_manager.get_all_trigger_strings()
+                )
+                locals = [{"name": x} for x in sorted(local_triggers, key=str.casefold)]
                 concepts = HuggingFaceConceptsLibrary().list_concepts(minimum_likes=5)
-                concepts = [{'name': f'<{x}>'} for x in sorted(concepts, key=str.casefold) if f'<{x}>' not in local_triggers]
-                socketio.emit("foundTextualInversionTriggers", {'local_triggers': locals, 'huggingface_concepts': concepts})
+                concepts = [
+                    {"name": f"<{x}>"}
+                    for x in sorted(concepts, key=str.casefold)
+                    if f"<{x}>" not in local_triggers
+                ]
+                socketio.emit(
+                    "foundTextualInversionTriggers",
+                    {"local_triggers": locals, "huggingface_concepts": concepts},
+                )
             except Exception as e:
                 self.handle_exceptions(e)
 
@@ -759,7 +770,10 @@ class InvokeAIWebServer:
 
         @socketio.on("generateImage")
         def handle_generate_image_event(
-            generation_parameters, esrgan_parameters, facetool_parameters
+            generation_parameters,
+            esrgan_parameters,
+            facetool_parameters,
+            automatic_mask_parameters,
         ):
             try:
                 # truncate long init_mask/init_img base64 if needed
@@ -780,6 +794,7 @@ class InvokeAIWebServer:
                 print(f"\n>> Image Generation Parameters:\n\n{printable_parameters}\n")
                 print(f">> ESRGAN Parameters: {esrgan_parameters}")
                 print(f">> Facetool Parameters: {facetool_parameters}")
+                print(f">> Automatic Mask Parameters: {automatic_mask_parameters}")
 
                 self.generate_images(
                     generation_parameters,
