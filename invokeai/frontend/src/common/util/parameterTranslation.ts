@@ -12,6 +12,8 @@ import generateMask from 'features/canvas/util/generateMask';
 import { getCanvasBaseLayer } from 'features/canvas/util/konvaInstanceProvider';
 import type {
   FacetoolType,
+  OutputAlphaMaskSamTarget,
+  OutputAlphaMaskType,
   UpscalingLevel,
 } from 'features/parameters/store/postprocessingSlice';
 import { PostprocessingState } from 'features/parameters/store/postprocessingSlice';
@@ -81,10 +83,17 @@ export type BackendFacetoolParameters = {
   codeformer_fidelity?: number;
 };
 
+export type OutputAlphaMaskParameters = {
+  type: OutputAlphaMaskType;
+  text_prompt: string;
+  sam_target: OutputAlphaMaskSamTarget;
+};
+
 export type BackendParameters = {
   generationParameters: BackendGenerationParameters;
   esrganParameters: false | BackendEsrGanParameters;
   facetoolParameters: false | BackendFacetoolParameters;
+  outputAlphaMaskParameters: false | OutputAlphaMaskParameters;
 };
 
 /**
@@ -115,6 +124,10 @@ export const frontendToBackendParameters = (
     upscalingLevel,
     upscalingStrength,
     upscalingDenoising,
+    outputAlphaMaskEnabled,
+    outputAlphaMaskType,
+    outputAlphaMaskTextPrompt,
+    outputAlphaMaskSamTarget,
   } = postprocessingState;
 
   const {
@@ -171,6 +184,17 @@ export const frontendToBackendParameters = (
     generation_mode: generationMode,
     init_mask: '',
   };
+
+  let outputAlphaMaskParameters: false | OutputAlphaMaskParameters;
+  if (outputAlphaMaskEnabled) {
+    outputAlphaMaskParameters = {
+      type: outputAlphaMaskType,
+      text_prompt: outputAlphaMaskTextPrompt,
+      sam_target: outputAlphaMaskSamTarget,
+    };
+  } else {
+    outputAlphaMaskParameters = false;
+  }
 
   let esrganParameters: false | BackendEsrGanParameters = false;
   let facetoolParameters: false | BackendFacetoolParameters = false;
@@ -332,5 +356,6 @@ export const frontendToBackendParameters = (
     generationParameters,
     esrganParameters,
     facetoolParameters,
+    outputAlphaMaskParameters,
   };
 };

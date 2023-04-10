@@ -57,14 +57,19 @@ const makeSocketIOEmitters = (
 
       dispatch(generationRequested());
 
-      const { generationParameters, esrganParameters, facetoolParameters } =
-        frontendToBackendParameters(frontendToBackendParametersConfig);
+      const {
+        generationParameters,
+        esrganParameters,
+        facetoolParameters,
+        outputAlphaMaskParameters,
+      } = frontendToBackendParameters(frontendToBackendParametersConfig);
 
       socketio.emit(
         'generateImage',
         generationParameters,
         esrganParameters,
-        facetoolParameters
+        facetoolParameters,
+        outputAlphaMaskParameters
       );
 
       // we need to truncate the init_mask base64 else it takes up the whole log
