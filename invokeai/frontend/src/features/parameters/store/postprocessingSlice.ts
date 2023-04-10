@@ -19,12 +19,15 @@ export interface PostprocessingState {
   upscalingLevel: UpscalingLevel;
   upscalingDenoising: number;
   upscalingStrength: number;
+  outputAlphaMaskEnabled: boolean;
   outputAlphaMaskType: OutputAlphaMaskType;
   outputAlphaMaskTextPrompt: string;
+  outputAlphaMaskSamTarget: OutputAlphaMaskSamTarget;
 }
 
 export type OutputAlphaMaskType = 'text2mask' | 'segment-anything';
-export type SegmentAnythingMode = 'center' | 'best';
+
+export type OutputAlphaMaskSamTarget = 'center' | 'best';
 
 const initialPostprocessingState: PostprocessingState = {
   codeformerFidelity: 0.75,
@@ -38,8 +41,10 @@ const initialPostprocessingState: PostprocessingState = {
   upscalingLevel: 4,
   upscalingDenoising: 0.75,
   upscalingStrength: 0.75,
+  outputAlphaMaskEnabled: false,
   outputAlphaMaskType: 'text2mask',
   outputAlphaMaskTextPrompt: 'foreground',
+  outputAlphaMaskSamTarget: 'best',
 };
 
 const initialState: PostprocessingState = initialPostprocessingState;
@@ -98,14 +103,23 @@ export const postprocessingSlice = createSlice({
     setShouldLoopback: (state, action: PayloadAction<boolean>) => {
       state.shouldLoopback = action.payload;
     },
+    setOutputAlphaMaskEnabled: (state, action: PayloadAction<boolean>) => {
+      state.outputAlphaMaskEnabled = action.payload;
+    },
     setOutputAlphaMaskType: (
       state,
       action: PayloadAction<OutputAlphaMaskType>
     ) => {
       state.outputAlphaMaskType = action.payload;
     },
-    setMaskTextPrompt: (state, action: PayloadAction<string>) => {
+    setOutputAlphaMaskTextPrompt: (state, action: PayloadAction<string>) => {
       state.outputAlphaMaskTextPrompt = action.payload;
+    },
+    setOutputAlphaMaskSamTarget: (
+      state,
+      action: PayloadAction<OutputAlphaMaskSamTarget>
+    ) => {
+      state.outputAlphaMaskSamTarget = action.payload;
     },
   },
 });
@@ -124,7 +138,10 @@ export const {
   setUpscalingLevel,
   setUpscalingDenoising,
   setUpscalingStrength,
+  setOutputAlphaMaskEnabled,
   setOutputAlphaMaskType,
+  setOutputAlphaMaskTextPrompt,
+  setOutputAlphaMaskSamTarget,
 } = postprocessingSlice.actions;
 
 export default postprocessingSlice.reducer;

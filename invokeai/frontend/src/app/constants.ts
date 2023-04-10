@@ -1,6 +1,5 @@
 // TODO: use Enums?
 
-import { OutputAlphaMaskType } from 'features/parameters/store/postprocessingSlice';
 import { InProgressImageType } from 'features/system/store/systemSlice';
 
 // Valid samplers
@@ -61,6 +60,8 @@ export const OUTPUT_ALPHA_MASK_TYPES = [
   'text2mask',
   'segment-anything',
 ] as const;
+
+export const SEGMENT_ANYTHING_TARGETS = ['anywhere', 'center'] as const;
 
 export const IN_PROGRESS_IMAGE_TYPES: Array<{
   key: string;

@@ -477,7 +477,9 @@
         "info": "Info",
         "deleteImage": "Delete Image",
         "initialImage": "Initial Image",
-        "showOptionsPanel": "Show Options Panel"
+        "showOptionsPanel": "Show Options Panel",
+        "outputAlphaMaskTextPrompt": "Output Alpha Mask Prompt",
+        "outputAlphaMaskSamTarget": "Target"
     },
     "settings": {
         "models": "Models",

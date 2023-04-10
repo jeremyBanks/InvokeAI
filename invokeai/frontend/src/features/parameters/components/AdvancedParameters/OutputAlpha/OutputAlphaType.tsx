@@ -1,4 +1,4 @@
-import { FACETOOL_TYPES, OUTPUT_ALPHA_MASK_TYPES } from 'app/constants';
+import { OUTPUT_ALPHA_MASK_TYPES } from 'app/constants';
 import { RootState } from 'app/store';
 import { useAppDispatch, useAppSelector } from 'app/storeHooks';
 import IAISelect from 'common/components/IAISelect';
