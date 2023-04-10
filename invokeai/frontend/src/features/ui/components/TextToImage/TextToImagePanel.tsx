@@ -17,8 +17,10 @@ import ParametersAccordion from 'features/parameters/components/ParametersAccord
 import ProcessButtons from 'features/parameters/components/ProcessButtons/ProcessButtons';
 import NegativePromptInput from 'features/parameters/components/PromptInput/NegativePromptInput';
 import PromptInput from 'features/parameters/components/PromptInput/PromptInput';
+import MaskingSettings from 'features/parameters/components/AdvancedParameters/Output/MaskingSettings';
 import InvokeOptionsPanel from 'features/ui/components/InvokeParametersPanel';
 import { useTranslation } from 'react-i18next';
+import MaskingToggle from 'features/parameters/components/AdvancedParameters/Output/MaskingToggle';
 
 export default function TextToImagePanel() {
   const { t } = useTranslation();
@@ -51,6 +53,11 @@ export default function TextToImagePanel() {
       header: `${t('parameters.symmetry')}`,
       content: <SymmetrySettings />,
       additionalHeaderComponents: <SymmetryToggle />,
+    },
+    masking: {
+      header: `${t('parameters.masking')}`,
+      content: <MaskingSettings />,
+      additionalHeaderComponents: <MaskingToggle />,
     },
     other: {
       header: `${t('parameters.otherOptions')}`,

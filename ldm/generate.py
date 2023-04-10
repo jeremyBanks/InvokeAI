@@ -807,10 +807,6 @@ class Generate:
             restorer = Outpaint(image, self)
             return restorer.process(opt, args, image_callback=callback, prefix=prefix)
 
-        elif tool == "automatic_mask":
-            print(dir(self.automatic_mask))
-            print("can i hit this code path!?")
-
         elif tool is None:
             print(
                 "* please provide at least one postprocessing option, such as -G or -U"

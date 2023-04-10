@@ -19,8 +19,11 @@ export interface PostprocessingState {
   upscalingLevel: UpscalingLevel;
   upscalingDenoising: number;
   upscalingStrength: number;
-  automaticMasking: boolean;
+  maskType: MaskType;
+  maskTextPrompt: string;
 }
+
+export type MaskType = null | 'text2mask' | 'segment-anything';
 
 const initialPostprocessingState: PostprocessingState = {
   codeformerFidelity: 0.75,
@@ -34,7 +37,8 @@ const initialPostprocessingState: PostprocessingState = {
   upscalingLevel: 4,
   upscalingDenoising: 0.75,
   upscalingStrength: 0.75,
-  automaticMasking: false,
+  maskType: null,
+  maskTextPrompt: '',
 };
 
 const initialState: PostprocessingState = initialPostprocessingState;
@@ -93,8 +97,11 @@ export const postprocessingSlice = createSlice({
     setShouldLoopback: (state, action: PayloadAction<boolean>) => {
       state.shouldLoopback = action.payload;
     },
-    setAutomaticMasking: (state, action: PayloadAction<boolean>) => {
-      state.automaticMasking = action.payload;
+    setMask: (state, action: PayloadAction<MaskType>) => {
+      state.maskType = action.payload;
+    },
+    setMaskTextPrompt: (state, action: PayloadAction<string>) => {
+      state.maskTextPrompt = action.payload;
     },
   },
 });
@@ -113,7 +120,7 @@ export const {
   setUpscalingLevel,
   setUpscalingDenoising,
   setUpscalingStrength,
-  setAutomaticMasking,
+  setMask,
 } = postprocessingSlice.actions;
 
 export default postprocessingSlice.reducer;

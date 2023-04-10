@@ -38,6 +38,7 @@ export interface GenerationState {
   variationAmount: number;
   width: number;
   shouldUseSymmetry: boolean;
+  shouldUseMasking: boolean;
   horizontalSymmetrySteps: number;
   verticalSymmetrySteps: number;
 }
@@ -73,6 +74,7 @@ const initialGenerationState: GenerationState = {
   variationAmount: 0.1,
   width: 512,
   shouldUseSymmetry: false,
+  shouldUseMasking: false,
   horizontalSymmetrySteps: 0,
   verticalSymmetrySteps: 0,
 };
@@ -481,6 +483,9 @@ export const generationSlice = createSlice({
     setShouldUseSymmetry: (state, action: PayloadAction<boolean>) => {
       state.shouldUseSymmetry = action.payload;
     },
+    setShouldUseMasking: (state, action: PayloadAction<boolean>) => {
+      state.shouldUseMasking = action.payload;
+    },
     setHorizontalSymmetrySteps: (state, action: PayloadAction<number>) => {
       state.horizontalSymmetrySteps = action.payload;
     },
@@ -531,6 +536,7 @@ export const {
   setVariationAmount,
   setWidth,
   setShouldUseSymmetry,
+  setShouldUseMasking,
   setHorizontalSymmetrySteps,
   setVerticalSymmetrySteps,
 } = generationSlice.actions;

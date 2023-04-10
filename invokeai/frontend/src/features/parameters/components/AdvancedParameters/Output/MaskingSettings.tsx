@@ -2,33 +2,29 @@ import { Flex } from '@chakra-ui/react';
 import type { RootState } from 'app/store';
 import { useAppDispatch, useAppSelector } from 'app/storeHooks';
 import IAISwitch from 'common/components/IAISwitch';
-import { setAutomaticMasking } from 'features/parameters/store/postprocessingSlice';
+import { setMask } from 'features/parameters/store/postprocessingSlice';
 import { ChangeEvent } from 'react';
-import { useTranslation } from 'react-i18next';
 
-const AutomaticMaskSettings = () => {
+const MaskingSettings = () => {
   const dispatch = useAppDispatch();
 
-  const automaticMasking = useAppSelector(
-    (state: RootState) => state.postprocessing.automaticMasking
+  const maskType = useAppSelector(
+    (state: RootState) => state.postprocessing.maskType
   );
 
-  const { t } = useTranslation();
-
   const handleChangeAutomaticMasking = (e: ChangeEvent<HTMLInputElement>) =>
-    dispatch(setAutomaticMasking(e.target.checked));
+    dispatch(setMask(e.target.checked ? 'segment-anything' : null));
 
   return (
     <Flex rowGap="0.8rem" direction={'column'}>
-      {'automatic masking?!'}
       <IAISwitch
-        label={t('automatic mask')}
+        label={'Mask Generation'}
         fontSize="md"
-        isChecked={automaticMasking}
+        isChecked={maskType === 'segment-anything'}
         onChange={handleChangeAutomaticMasking}
       />
     </Flex>
   );
 };
 
-export default AutomaticMaskSettings;
+export default MaskingSettings;
